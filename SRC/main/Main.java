@@ -1,4 +1,4 @@
-package SRC.main;
+package src.main;
 
 public class Main {
     

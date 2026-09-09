@@ -1,4 +1,4 @@
-package SRC.model;
+package src.model;
 
 public class Gestionnaire extends Personne {
         private String idGestionnaire;
