@@ -2,7 +2,9 @@ package src.main;
 
 import src.model.Client;
 import src.model.Courant;
+import src.model.Epargne;
 import src.model.Gestionnaire;
+import src.model.Transaction;
 import java.util.Scanner;
 
 public class Main {
@@ -12,12 +14,16 @@ public class Main {
         // 1. Initialisation des donnees 
         Gestionnaire admin = new Gestionnaire("Admin", "Super", "admin@nexbank.com", "admin123", "EMP-001");
         Client client = new Client("Zouana", "Noureddine", "noureddine@email.com", "pass123", "C-001");
+        
         Courant compteCourant = new Courant("RIB-123456", 5000.0);
+        Epargne compteEpargne = new Epargne("EP-987654", 2000.0); // Compte destination pour le virement
+        
         client.ajouterCompte(compteCourant);
+        client.ajouterCompte(compteEpargne);
 
-        int choixRole = -1; // Initialisation pour entrer dans la boucle while
+        int choixRole = -1; 
 
-        // 2. Boucle principale avec while
+        // 2. Boucle principale
         while (choixRole != 0) {
             System.out.println("\n===================================");
             System.out.println("      BIENVENUE CHEZ NEXBANK       ");
@@ -31,7 +37,8 @@ public class Main {
 
             switch (choixRole) {
                 case 1:
-                    menuClient(scanner, client, compteCourant);
+                    // On passe les deux comptes pour pouvoir faire un virement
+                    menuClient(scanner, client, compteCourant, compteEpargne);
                     break;
                 case 2:
                     menuGestionnaire(scanner, admin, client);
@@ -48,15 +55,16 @@ public class Main {
     }
 
     // --- SOUS-MENU : ESPACE CLIENT ---
-    private static void menuClient(Scanner scanner, Client client, Courant compte) {
-        int choix = -1; // Initialisation
+    private static void menuClient(Scanner scanner, Client client, Courant compteSource, Epargne compteDestination) {
+        int choix = -1; 
         
         while (choix != 0) {
             System.out.println("\n--- ESPACE CLIENT : " + client.getNom() + " ---");
-            System.out.println("1. Consulter le solde");
+            System.out.println("1. Consulter le solde (Courant)");
             System.out.println("2. Effectuer un depot");
             System.out.println("3. Effectuer un retrait");
             System.out.println("4. Afficher l'historique des transactions");
+            System.out.println("5. Effectuer un virement vers compte Epargne");
             System.out.println("0. Retour au menu principal");
             System.out.print("Votre choix : ");
             
@@ -64,20 +72,27 @@ public class Main {
 
             switch (choix) {
                 case 1:
-                    System.out.println("Votre solde actuel est : " + compte.getSolde() + " DH");
+                    System.out.println("Votre solde actuel (Courant) est : " + compteSource.getSolde() + " DH");
                     break;
                 case 2:
                     System.out.print("Entrez le montant a deposer : ");
                     double depot = scanner.nextDouble();
-                    compte.depotArgent(depot);
+                    compteSource.depotArgent(depot);
                     break;
                 case 3:
                     System.out.print("Entrez le montant a retirer : ");
                     double retrait = scanner.nextDouble();
-                    compte.retraitArgent(retrait);
+                    compteSource.retraitArgent(retrait);
                     break;
                 case 4:
-                    compte.afficherHistorique();
+                    compteSource.afficherHistorique();
+                    break;
+                case 5:
+                    System.out.println("Solde Epargne avant virement : " + compteDestination.getSolde() + " DH");
+                    System.out.print("Entrez le montant a transferer vers votre compte Epargne : ");
+                    double montantVirement = scanner.nextDouble();
+                    // Appel de la methode statique Virement
+                    Transaction.Virement(compteSource, compteDestination, montantVirement);
                     break;
                 case 0:
                     System.out.println("Retour au menu principal...");
@@ -90,7 +105,7 @@ public class Main {
 
     // --- SOUS-MENU : ESPACE GESTIONNAIRE ---
     private static void menuGestionnaire(Scanner scanner, Gestionnaire admin, Client client) {
-        int choix = -1; // Initialisation
+        int choix = -1; 
         
         while (choix != 0) {
             System.out.println("\n--- ESPACE GESTIONNAIRE : " + admin.getNom() + " ---");
@@ -100,7 +115,7 @@ public class Main {
             System.out.print("Votre choix : ");
             
             choix = scanner.nextInt();
-            scanner.nextLine(); // Vider le buffer
+            scanner.nextLine(); 
 
             switch (choix) {
                 case 1:
