@@ -1,4 +1,4 @@
-package SRC.service;
+package src.service;
 
 public class FichierService {
     

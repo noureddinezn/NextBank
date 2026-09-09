@@ -1,4 +1,4 @@
-package SRC.model;
+package src.model;
 
 public abstract class Personne {
 protected String nom;

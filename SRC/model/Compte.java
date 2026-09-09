@@ -1,4 +1,4 @@
-package SRC.model;
+package src.model;
 
 public abstract class Compte  {
     protected String numeroCompte;
