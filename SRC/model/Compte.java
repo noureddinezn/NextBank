@@ -1,15 +1,17 @@
 package src.model;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class Compte  {
     protected String numeroCompte;
     protected double solde;
-    // protected Set<Transaction> historiqueTransactions;
+   protected Set<Transaction> historiqueTransactions;
 
 
 public Compte(String numeroCompte, double soldeInitial) {
         this.numeroCompte = numeroCompte;
         this.solde = soldeInitial;
-        // this.historiqueTransactions = new HashSet<>();
+         this.historiqueTransactions = new HashSet<>();
     }
 
     public String getNumeroCompte() {
