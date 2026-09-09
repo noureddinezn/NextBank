@@ -23,6 +23,21 @@ public class Transaction {
     public TypeTransaction getType() {
         return type;
     }
+    public double getMontant() {
+        return montant;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public String getCompteSource() {
+        return compteSource;
+    }
+
+    public String getCompteDestination() {
+        return compteDestination;
+    }
 
     
 }
