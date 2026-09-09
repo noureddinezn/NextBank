@@ -1,5 +1,7 @@
 package SRC.model;
-
-public class TypeTransaction {
-    
+public enum TypeTransaction {
+    Depot,
+    Retrait,
+    Virement
 }
+
