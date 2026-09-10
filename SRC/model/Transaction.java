@@ -1,5 +1,7 @@
 package src.model;
-
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 
 public class Transaction {
@@ -92,6 +94,30 @@ public class Transaction {
         }
         System.out.println("------------------------------------------------------\n");
     }
+    // Methode pour enregistrer l'historique dans un fichier texte simple
+    public static void enregistreFichier(Compte compte) {
+        String nomFichier = "Historique_" + compte.getNumeroCompte() + ".txt";
 
-    // la creation du method historique
+        try (PrintWriter writer = new PrintWriter(new FileWriter(nomFichier))) {
+            writer.println("--- HISTORIQUE DES TRANSACTIONS ---");
+            writer.println("Compte : " + compte.getNumeroCompte());
+            writer.println("-----------------------------------");
+
+            if (compte.historiqueTransactions.isEmpty()) {
+                writer.println("Aucune transaction trouvee.");
+            } else {
+                for (Transaction tx : compte.historiqueTransactions) {
+                    writer.println("- ID: " + tx.getIdTransaction() + 
+                                   " | Type: " + tx.getType() + 
+                                   " | Montant: " + tx.getMontant() + " DH");
+                }
+            }
+            
+            System.out.println("Succes : L'historique a ete enregistre dans le fichier [" + nomFichier + "]");
+            
+        } catch (IOException e) {
+            System.out.println("Erreur : Impossible de sauvegarder le fichier.");
+        }
+    }
+    
 }
