@@ -1,9 +1,6 @@
 package src.model;
 
 import java.util.Date;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.IOException;
 
 public class Transaction {
 
@@ -81,7 +78,6 @@ public class Transaction {
         }
     }
 
-    // Methode pour afficher l'historique dans la console
     public static void historiqueTransaction(Compte compte) {
         System.out.println("\n--- HISTORIQUE DES TRANSACTIONS (Compte: " + compte.getNumeroCompte() + ") ---");
         
@@ -95,30 +91,5 @@ public class Transaction {
             }
         }
         System.out.println("------------------------------------------------------\n");
-    }
-
-    // Methode pour sauvegarder l'historique dans un fichier (Flat File Database) en utilisant Character Streams
-    public static void enregistreFichier(Compte compte) {
-        String nomFichier = "transactions_nexbank.csv";
-
-        // Utilisation de try-with-resources pour fermer le flux automatiquement
-        // Le parametre 'true' dans FileWriter permet d'ajouter a la fin du fichier (Append mode) sans ecraser l'ancien contenu
-        try (PrintWriter writer = new PrintWriter(new FileWriter(nomFichier, true))) {
-            
-            if (!compte.historiqueTransactions.isEmpty()) {
-                for (Transaction tx : compte.historiqueTransactions) {
-                    // Format CSV : numeroCompte, idTransaction, typeTransaction, montant, date
-                    writer.println(compte.getNumeroCompte() + "," + 
-                                   tx.getIdTransaction() + "," + 
-                                   tx.getType() + "," + 
-                                   tx.getMontant() + "," + 
-                                   tx.getDate());
-                }
-                System.out.println("Succes : Les transactions ont ete sauvegardees dans " + nomFichier);
-            }
-            
-        } catch (IOException e) {
-            System.out.println("Erreur : Impossible de sauvegarder les transactions. " + e.getMessage());
-        }
     }
 }
