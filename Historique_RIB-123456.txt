@@ -1,0 +1,5 @@
+--- HISTORIQUE DES TRANSACTIONS ---
+Compte : RIB-123456
+-----------------------------------
+- ID: 259 | Type: Depot | Montant: 2000.0 DH
+- ID: 985 | Type: Depot | Montant: 500.0 DH
