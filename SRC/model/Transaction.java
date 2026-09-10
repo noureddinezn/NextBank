@@ -92,4 +92,6 @@ public class Transaction {
         }
         System.out.println("------------------------------------------------------\n");
     }
+
+    // la creation du method historique
 }
