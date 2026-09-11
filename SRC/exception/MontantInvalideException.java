@@ -1,4 +1,7 @@
 package src.exception;
-public class MontantInvalideException {
-    
+
+public class MontantInvalideException extends Exception {
+    public MontantInvalideException(String message) {
+        super(message);
+    }
 }
