@@ -3,6 +3,8 @@ package src.service;
 import src.model.Compte;
 import src.model.Courant;
 import src.model.Epargne;
+import src.model.Transaction;
+import src.model.TypeTransaction;
 import src.exception.MontantInvalideException;
 import src.exception.SoldeInsuffisantException;
 
@@ -13,6 +15,10 @@ public class CompteService {
             throw new MontantInvalideException("Operation annulee : Le montant du depot doit etre superieur a zero.");
         }
         compte.setSolde(compte.getSolde() + montant);
+        
+        Transaction tx = new Transaction((int) (Math.random() * 1000), TypeTransaction.Depot, montant, compte.getNumeroCompte());
+        compte.getHistoriqueTransactions().add(tx);
+        
         System.out.println("Succes : Depot effectue. Nouveau solde : " + compte.getSolde() + " DH");
     }
 
@@ -21,7 +27,6 @@ public class CompteService {
             throw new MontantInvalideException("Operation annulee : Le montant du retrait doit etre superieur a zero.");
         }
         
-       
         if (compte instanceof Courant) {
             double decouvertAutorise = 1000.0;
             if ((compte.getSolde() + decouvertAutorise) < montant) {
@@ -34,6 +39,10 @@ public class CompteService {
         }
 
         compte.setSolde(compte.getSolde() - montant);
+        
+        Transaction tx = new Transaction((int) (Math.random() * 1000), TypeTransaction.Retrait, montant, compte.getNumeroCompte());
+        compte.getHistoriqueTransactions().add(tx);
+        
         System.out.println("Succes : Retrait effectue sur votre " + compte.getClass().getSimpleName() + ". Nouveau solde : " + compte.getSolde() + " DH");
     }
 }
