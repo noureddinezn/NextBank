@@ -5,17 +5,27 @@ import src.model.Compte;
 import src.model.Courant;
 import src.model.Epargne;
 import src.model.Gestionnaire;
-import src.model.Transaction;
+import src.exception.MontantInvalideException;
+import src.exception.SoldeInsuffisantException;
+import src.service.ClientService;
+import src.service.CompteService;
+import src.service.GestionnaireService;
+import src.service.TransactionService;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
     
-    // Bases de donnees en memoire (HashMaps)
     private static Map<String, Client> baseClients = new HashMap<>();
     private static Map<String, Courant> baseCourants = new HashMap<>();
     private static Map<String, Epargne> baseEpargnes = new HashMap<>();
+
+    private static ClientService clientService = new ClientService();
+    private static CompteService compteService = new CompteService();
+    private static TransactionService transactionService = new TransactionService();
+    private static GestionnaireService gestionnaireService = new GestionnaireService();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -81,8 +91,8 @@ public class Main {
         Courant compteC = new Courant(ribCourant, 0.0);
         Epargne compteE = new Epargne(ribEpargne, 0.0);
 
-        nouveauClient.ajouterCompte(compteC);
-        nouveauClient.ajouterCompte(compteE);
+        clientService.ajouterCompte(nouveauClient, compteC);
+        clientService.ajouterCompte(nouveauClient, compteE);
 
         baseClients.put(email, nouveauClient);
         baseCourants.put(email, compteC);
@@ -100,31 +110,45 @@ public class Main {
 
         if (baseClients.containsKey(email)) {
             Client clientConnecte = baseClients.get(email);
-            Courant compteC = baseCourants.get(email);
-            Epargne compteE = baseEpargnes.get(email);
-            
             System.out.println("Connexion reussie ! Bienvenue " + clientConnecte.getNom());
-            menuClient(scanner, clientConnecte, compteC, compteE);
+            // Appel dynamique : on passe uniquement le client !
+            menuClient(scanner, clientConnecte);
         } else {
             System.out.println("Erreur : Aucun compte trouve avec cet email.");
         }
     }
 
-    // --- NOUVELLE METHODE : Choisir le compte cible (Polymorphisme) ---
-    private static Compte choisirCompte(Scanner scanner, Courant compteCourant, Epargne compteEpargne) {
-        System.out.println("\nSur quel compte voulez-vous effectuer cette operation ?");
-        System.out.println("1. Compte Courant (" + compteCourant.getNumeroCompte() + ")");
-        System.out.println("2. Compte Epargne (" + compteEpargne.getNumeroCompte() + ")");
-        System.out.print("Votre choix : ");
-        
-        int choix = scanner.nextInt();
-        if (choix == 2) {
-            return compteEpargne;
+    // --- METHODE DYNAMIQUE QUI BOUCLE SUR LES COMPTES DU CLIENT ---
+    private static Compte choisirCompte(Scanner scanner, Client client) {
+        System.out.println("\n--- VOS COMPTES ---");
+        if (client.getComptes().isEmpty()) {
+            System.out.println("Vous n'avez aucun compte actif.");
+            return null;
         }
-        return compteCourant; // Par defaut ou si choix = 1
+
+        int index = 1;
+        Compte[] listeComptes = new Compte[client.getComptes().size()];
+        
+        // Boucle classique pour afficher les comptes
+        for (Compte c : client.getComptes().values()) {
+            System.out.println(index + ". " + c.getClass().getSimpleName() + " (" + c.getNumeroCompte() + ") - Solde: " + c.getSolde() + " DH");
+            listeComptes[index - 1] = c;
+            index++;
+        }
+
+        System.out.print("Choisissez un compte (1 - " + (index - 1) + ") : ");
+        int choix = scanner.nextInt();
+
+        if (choix >= 1 && choix < index) {
+            return listeComptes[choix - 1];
+        } else {
+            System.out.println("Choix invalide. Selection automatique du premier compte.");
+            return listeComptes[0];
+        }
     }
 
-    private static void menuClient(Scanner scanner, Client client, Courant compteCourant, Epargne compteEpargne) {
+    // --- MENU CLIENT DYNAMIQUE ---
+    private static void menuClient(Scanner scanner, Client client) {
         int choix = -1; 
         
         while (choix != 0) {
@@ -139,48 +163,67 @@ public class Main {
             System.out.print("Votre choix : ");
             
             choix = scanner.nextInt();
-            Compte compteChoisi = null; // Utilisation polymorphique
+            Compte compteChoisi = null; 
 
             switch (choix) {
                 case 1:
-                    compteChoisi = choisirCompte(scanner, compteCourant, compteEpargne);
-                    System.out.println("Votre solde actuel est : " + compteChoisi.getSolde() + " DH");
+                    compteChoisi = choisirCompte(scanner, client);
+                    if (compteChoisi != null) {
+                        System.out.println("Votre solde actuel est : " + compteChoisi.getSolde() + " DH");
+                    }
                     break;
                 case 2:
-                    compteChoisi = choisirCompte(scanner, compteCourant, compteEpargne);
-                    System.out.print("Entrez le montant a deposer : ");
-                    double depot = scanner.nextDouble();
-                    compteChoisi.depotArgent(depot);
+                    compteChoisi = choisirCompte(scanner, client);
+                    if (compteChoisi != null) {
+                        System.out.print("Entrez le montant a deposer : ");
+                        double depot = scanner.nextDouble();
+                        try {
+                            compteService.depotArgent(compteChoisi, depot);
+                        } catch (MontantInvalideException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
                     break;
                 case 3:
-                    compteChoisi = choisirCompte(scanner, compteCourant, compteEpargne);
-                    System.out.print("Entrez le montant a retirer : ");
-                    double retrait = scanner.nextDouble();
-                    compteChoisi.retraitArgent(retrait);
+                    compteChoisi = choisirCompte(scanner, client);
+                    if (compteChoisi != null) {
+                        System.out.print("Entrez le montant a retirer : ");
+                        double retrait = scanner.nextDouble();
+                        try {
+                            compteService.retraitArgent(compteChoisi, retrait);
+                        } catch (MontantInvalideException | SoldeInsuffisantException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
                     break;
                 case 4:
-                    compteChoisi = choisirCompte(scanner, compteCourant, compteEpargne);
-                    Transaction.historiqueTransaction(compteChoisi);
+                    compteChoisi = choisirCompte(scanner, client);
+                    if (compteChoisi != null) {
+                        transactionService.historiqueTransaction(compteChoisi);
+                    }
                     break;
                 case 5:
-                    System.out.println("\nSens du virement :");
-                    System.out.println("1. Depuis Compte Courant vers Compte Epargne");
-                    System.out.println("2. Depuis Compte Epargne vers Compte Courant");
-                    System.out.print("Votre choix : ");
-                    int sens = scanner.nextInt();
+                    System.out.println("\n--- COMPTE SOURCE ---");
+                    Compte compteSource = choisirCompte(scanner, client);
                     
-                    System.out.print("Entrez le montant a transferer : ");
-                    double montantVirement = scanner.nextDouble();
-                    
-                    if (sens == 2) {
-                        Transaction.Virement(compteEpargne, compteCourant, montantVirement);
-                    } else {
-                        Transaction.Virement(compteCourant, compteEpargne, montantVirement);
+                    if (compteSource != null) {
+                        System.out.println("\n--- COMPTE DESTINATION ---");
+                        Compte compteDest = choisirCompte(scanner, client);
+                        
+                        if (compteSource.getNumeroCompte().equals(compteDest.getNumeroCompte())) {
+                            System.out.println("Erreur : Vous ne pouvez pas faire un virement vers le meme compte !");
+                        } else {
+                            System.out.print("Entrez le montant a transferer : ");
+                            double montantVirement = scanner.nextDouble();
+                            transactionService.Virement(compteSource, compteDest, montantVirement);
+                        }
                     }
                     break;
                 case 6:
-                    compteChoisi = choisirCompte(scanner, compteCourant, compteEpargne);
-                    Transaction.enregistreFichier(compteChoisi);
+                    compteChoisi = choisirCompte(scanner, client);
+                    if (compteChoisi != null) {
+                        transactionService.enregistreFichier(compteChoisi);
+                    }
                     break;
                 case 0:
                     System.out.println("Deconnexion en cours...");
